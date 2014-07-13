@@ -138,6 +138,30 @@ public final class MinkJ implements Serializable
 	}
 
 	/**
+	 * Does the same thing as {@link #addTranslation(Locale, String, String)}
+	 * with the {@link #selectedLanguage}
+	 * 
+	 * @param key
+	 * @param translation
+	 * @return
+	 */
+	public MinkJ addTranslation(String key, String translation)
+	{
+		return addTranslation(selectedLanguage, key, translation);
+	}
+	
+	/**
+	 * Does the same thing as {@link #removeTranslation(Locale, String)}
+	 * with the {@link #selectedLanguage} 
+	 * @param key
+	 * @return
+	 */
+	public MinkJ removeTranslation(String key)
+	{
+		return removeTranslation(selectedLanguage, key);
+	}
+
+	/**
 	 * Adds a for the given key for the given locale. If the locale's
 	 * translations were not initiated, this method will initiate them
 	 * 
