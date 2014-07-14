@@ -214,6 +214,9 @@ public final class MinkJ implements Serializable
 		if(locale == null || file == null)
 			throw new NullPointerException();
 
+		if(map.get(locale) == null)
+			map.put(locale, new HashMap<String, String>());
+
 		BufferedReader br = null;
 		String line;
 		try
@@ -221,12 +224,18 @@ public final class MinkJ implements Serializable
 			br = new BufferedReader(new FileReader(file));
 			while((line = br.readLine()) != null)
 			{
-				if(!(line.startsWith("#") && line.isEmpty()))
+				if(!(line.startsWith("#") || line.isEmpty()))
 				{
-					String[] translation = line.split(line);
+					String[] translation = line.split("=");
 					if(!(translation.length == 2))
-						throw new UnrespectedModelException(file);
-					if(map.get(locale).containsKey(translation[0])) System.err.println("WARNING : File " + file.getName() + " overwrites a translation @ " + translation[0]);
+					{
+						System.err.println("Errrored String : " + line + ". Here is the index :");
+						for(int i = 0; i < translation.length; i++)
+							System.err.println(translation[i] + "          @ index " + i);
+						throw new UnrespectedModelException(file, line);
+					}
+					if(map.get(locale).containsKey(translation[0]))
+						System.err.println("WARNING : File " + file.getName() + " overwrites a translation @ " + translation[0]);
 					this.addTranslation(locale, translation[0], translation[1]);
 				}
 			}
@@ -236,6 +245,7 @@ public final class MinkJ implements Serializable
 			if(br != null)
 				br.close();
 		}
+		System.out.println("Successfully read file : " + file.getName());
 		return this;
 	}
 
@@ -303,16 +313,18 @@ public final class MinkJ implements Serializable
 	{
 		private static final long serialVersionUID = -1539821762590369248L;
 		private File file;
+		private String line;
 
-		public UnrespectedModelException(File f)
+		public UnrespectedModelException(File f, String line)
 		{
+			this.line = line;
 			file = f;
 		}
 
 		@Override
 		public String getMessage()
 		{
-			String message = "Unrespected model on file";
+			String message = "Unrespected model (" + line + ") on file";
 			if(file != null)
 				message = message + file.getName();
 			return message;
