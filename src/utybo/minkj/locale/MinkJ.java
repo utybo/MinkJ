@@ -37,7 +37,7 @@ public final class MinkJ implements Serializable
 	 * which stores the key (first String) and its associated translation
 	 * (second String).
 	 */
-	private volatile Map<Locale, Map<String, String>> map = new HashMap<Locale, Map<String, String>>();
+	private Map<Locale, Map<String, String>> map = new HashMap<Locale, Map<String, String>>();
 
 	/**
 	 * The default language. It is used in case of an unknown translation for a
@@ -50,7 +50,7 @@ public final class MinkJ implements Serializable
 	 * returned. If the translation from the default translation is not
 	 * available/does not exist, the key will be returned.
 	 */
-	private volatile Locale defaultLanguage = Locale.ENGLISH;
+	private Locale defaultLanguage = Locale.ENGLISH;
 
 	/**
 	 * The selected language. The methods getting a translation will look for a
@@ -58,7 +58,7 @@ public final class MinkJ implements Serializable
 	 * make sure you change this variable before using methods without any
 	 * locale parameter, as they will use this variable!
 	 */
-	private volatile Locale selectedLanguage = null;
+	private Locale selectedLanguage = null;
 
 	public MinkJ()
 	{}
