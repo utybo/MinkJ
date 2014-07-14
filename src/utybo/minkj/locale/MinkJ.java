@@ -149,10 +149,11 @@ public final class MinkJ implements Serializable
 	{
 		return addTranslation(selectedLanguage, key, translation);
 	}
-	
+
 	/**
-	 * Does the same thing as {@link #removeTranslation(Locale, String)}
-	 * with the {@link #selectedLanguage} 
+	 * Does the same thing as {@link #removeTranslation(Locale, String)} with
+	 * the {@link #selectedLanguage}
+	 * 
 	 * @param key
 	 * @return
 	 */
@@ -220,10 +221,14 @@ public final class MinkJ implements Serializable
 			br = new BufferedReader(new FileReader(file));
 			while((line = br.readLine()) != null)
 			{
-				String[] translation = line.split(line);
-				if(!(translation.length == 2))
-					throw new UnrespectedModelException(file);
-				this.addTranslation(locale, translation[0], translation[1]);
+				if(!(line.startsWith("#") && line.isEmpty()))
+				{
+					String[] translation = line.split(line);
+					if(!(translation.length == 2))
+						throw new UnrespectedModelException(file);
+					if(map.get(locale).containsKey(translation[0])) System.err.println("WARNING : File " + file.getName() + " overwrites a translation @ " + translation[0]);
+					this.addTranslation(locale, translation[0], translation[1]);
+				}
 			}
 		}
 		finally
@@ -294,7 +299,7 @@ public final class MinkJ implements Serializable
 	 * @author utybo
 	 * 
 	 */
-	private class UnrespectedModelException extends Exception implements Serializable
+	public class UnrespectedModelException extends Exception implements Serializable
 	{
 		private static final long serialVersionUID = -1539821762590369248L;
 		private File file;
