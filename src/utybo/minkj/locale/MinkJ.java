@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Locale;
@@ -248,9 +250,65 @@ public final class MinkJ implements Serializable
 		System.out.println("Successfully read file : " + file.getName());
 		return this;
 	}
+	
+	/**
+	 * Imports the translation from the given file. <br/>
+	 * <br/>
+	 * Model :<blockquote><code>
+	 * key.that.must.not.contain.spaces=Translation that can contain spaces</code>
+	 * </blockquote>
+	 * 
+	 * 
+	 * @param locale
+	 * @param input
+	 * @return
+	 * @throws NullPointerException
+	 *             if a parameter is missing
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	public synchronized MinkJ loadTranslationsFromFile(Locale locale, InputStream input) throws UnrespectedModelException, NullPointerException, FileNotFoundException, IOException
+	{
+		if(locale == null || input == null)
+			throw new NullPointerException();
+
+		if(map.get(locale) == null)
+			map.put(locale, new HashMap<String, String>());
+
+		BufferedReader br = null;
+		String line;
+		try
+		{
+			br = new BufferedReader(new InputStreamReader(input, "UTF-8"));
+			while((line = br.readLine()) != null)
+			{
+				if(!(line.startsWith("#") || line.isEmpty()))
+				{
+					String[] translation = line.split("=");
+					if(!(translation.length == 2))
+					{
+						System.err.println("Errrored String : " + line + ". Here is the index :");
+						for(int i = 0; i < translation.length; i++)
+							System.err.println(translation[i] + "          @ index " + i);
+						throw new UnrespectedModelException(line);
+					}
+					if(map.get(locale).containsKey(translation[0]))
+						System.err.println("WARNING : File " + input.toString() + " overwrites a translation @ " + translation[0]);
+					this.addTranslation(locale, translation[0], translation[1]);
+				}
+			}
+		}
+		finally
+		{
+			if(br != null)
+				br.close();
+		}
+		System.out.println("Successfully read file : " + input.toString());
+		return this;
+	}
 
 	/**
-	 * Sets the selected langauge to the given locale
+	 * Sets the selected language to the given locale
 	 * 
 	 * @param locale
 	 * @return
@@ -318,7 +376,12 @@ public final class MinkJ implements Serializable
 		public UnrespectedModelException(File f, String line)
 		{
 			this.line = line;
-			file = f;
+			this.file = f;
+		}
+		
+		public UnrespectedModelException(String line)
+		{
+			this.line = line;
 		}
 
 		@Override
