@@ -22,17 +22,6 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public final class MinkJ implements Serializable
 {
-
-	/*
-	 * Quick explanation on the volatile fields below : A field is volatile
-	 * because it could be modified/accessed by multiple threads at the same
-	 * time. Here, if you modify the defaultLanguage, any other thread will see
-	 * this value as the new one.
-	 * 
-	 * This keyword is not compulsory, but I prefer using it to avoid any
-	 * thread-related problems.
-	 */
-
 	/**
 	 * Stores the values. This HashMap can be very big. The first one (Locale,
 	 * hashMap) stored the Locale and its corresponding HashMap (String, String)
@@ -60,7 +49,7 @@ public final class MinkJ implements Serializable
 	 * make sure you change this variable before using methods without any
 	 * locale parameter, as they will use this variable!
 	 */
-	private Locale selectedLanguage = null;
+	private Locale selectedLanguage = new Locale(System.getProperty("user.language"));
 
 	public MinkJ()
 	{}
@@ -219,40 +208,13 @@ public final class MinkJ implements Serializable
 		if(map.get(locale) == null)
 			map.put(locale, new HashMap<String, String>());
 
-		BufferedReader br = null;
-		String line;
-		try
-		{
-			br = new BufferedReader(new FileReader(file));
-			while((line = br.readLine()) != null)
-			{
-				if(!(line.startsWith("#") || line.isEmpty()))
-				{
-					String[] translation = line.split("=");
-					if(!(translation.length == 2))
-					{
-						System.err.println("Errrored String : " + line + ". Here is the index :");
-						for(int i = 0; i < translation.length; i++)
-							System.err.println(translation[i] + "          @ index " + i);
-						throw new UnrespectedModelException(file, line);
-					}
-					if(map.get(locale).containsKey(translation[0]))
-						System.err.println("WARNING : File " + file.getName() + " overwrites a translation @ " + translation[0]);
-					this.addTranslation(locale, translation[0], translation[1]);
-				}
-			}
-		}
-		finally
-		{
-			if(br != null)
-				br.close();
-		}
-		System.out.println("Successfully read file : " + file.getName());
+		loadTranslationFromBufferedReader(new BufferedReader(new FileReader(file)), locale, file.getName());
+		
 		return this;
 	}
-	
+
 	/**
-	 * Imports the translation from the given file. <br/>
+	 * Imports the translation from the given file (given as an InputStream). <br/>
 	 * <br/>
 	 * Model :<blockquote><code>
 	 * key.that.must.not.contain.spaces=Translation that can contain spaces</code>
@@ -275,11 +237,29 @@ public final class MinkJ implements Serializable
 		if(map.get(locale) == null)
 			map.put(locale, new HashMap<String, String>());
 
-		BufferedReader br = null;
-		String line;
+		loadTranslationFromBufferedReader(new BufferedReader(new InputStreamReader(input, "UTF-8")), locale, input.toString());
+
+		return this;
+	}
+
+	/**
+	 * This is used by the readers to provide a common method, making code modification easier
+	 * @param br
+	 * @param locale
+	 * @param fileName
+	 * @return
+	 * @throws IOException
+	 * @throws UnrespectedModelException
+	 * @since 1.0_pre6
+	 */
+	private synchronized MinkJ loadTranslationFromBufferedReader(BufferedReader br, Locale locale, String fileName) throws IOException, UnrespectedModelException
+	{
+		if(br == null)
+			throw new NullPointerException();
+		assert br != null;
 		try
 		{
-			br = new BufferedReader(new InputStreamReader(input, "UTF-8"));
+			String line;
 			while((line = br.readLine()) != null)
 			{
 				if(!(line.startsWith("#") || line.isEmpty()))
@@ -293,17 +273,16 @@ public final class MinkJ implements Serializable
 						throw new UnrespectedModelException(line);
 					}
 					if(map.get(locale).containsKey(translation[0]))
-						System.err.println("WARNING : File " + input.toString() + " overwrites a translation @ " + translation[0]);
+						System.err.println("WARNING : File " + fileName + " overwrites a translation @ " + translation[0]);
 					this.addTranslation(locale, translation[0], translation[1]);
 				}
 			}
 		}
 		finally
 		{
-			if(br != null)
-				br.close();
+			br.close();
 		}
-		System.out.println("Successfully read file : " + input.toString());
+		System.out.println("Successfully read file : " + fileName);
 		return this;
 	}
 
@@ -378,7 +357,7 @@ public final class MinkJ implements Serializable
 			this.line = line;
 			this.file = f;
 		}
-		
+
 		public UnrespectedModelException(String line)
 		{
 			this.line = line;
