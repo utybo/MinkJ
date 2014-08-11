@@ -13,7 +13,9 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The whole system of MinkJ!
+ * The whole system of MinkJ!<br/><br/>
+ * 
+ * You need to redefine the translations if you want to use the serialization with MinkJ 
  * 
  * @author utybo
  * @see {@link java.util.Locale} (MinkJ uses Locale intances)
@@ -24,11 +26,11 @@ public final class MinkJ implements Serializable
 {
 	/**
 	 * Stores the values. This HashMap can be very big. The first one (Locale,
-	 * hashMap) stored the Locale and its corresponding HashMap (String, String)
+	 * hashMap) stores the Locale and its corresponding HashMap (String, String)
 	 * which stores the key (first String) and its associated translation
 	 * (second String).
 	 */
-	private Map<Locale, Map<String, String>> map = new HashMap<Locale, Map<String, String>>();
+	private transient Map<Locale, Map<String, String>> map = new HashMap<Locale, Map<String, String>>();
 
 	/**
 	 * The default language. It is used in case of an unknown translation for a
@@ -45,9 +47,7 @@ public final class MinkJ implements Serializable
 
 	/**
 	 * The selected language. The methods getting a translation will look for a
-	 * translation for the Locale specified here. The default value is null,
-	 * make sure you change this variable before using methods without any
-	 * locale parameter, as they will use this variable!
+	 * translation for the Locale specified here. The default value is the system language.
 	 */
 	private Locale selectedLanguage = new Locale(System.getProperty("user.language"));
 
