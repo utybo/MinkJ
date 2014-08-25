@@ -13,9 +13,11 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The whole system of MinkJ!<br/><br/>
+ * The whole system of MinkJ!<br/>
+ * <br/>
  * 
- * You need to redefine the translations if you want to use the serialization with MinkJ 
+ * You need to redefine the translations if you want to use the serialization
+ * with MinkJ
  * 
  * @author utybo
  * @see {@link java.util.Locale} (MinkJ uses Locale intances)
@@ -47,9 +49,15 @@ public final class MinkJ implements Serializable
 
 	/**
 	 * The selected language. The methods getting a translation will look for a
-	 * translation for the Locale specified here. The default value is the system language.
+	 * translation for the Locale specified here. The default value is the
+	 * system language.
 	 */
 	private Locale selectedLanguage = new Locale(System.getProperty("user.language"));
+
+	/**
+	 * Defines if MinkJ will output anything such as errors, info...
+	 */
+	private boolean muted = false;
 
 	public MinkJ()
 	{}
@@ -209,7 +217,7 @@ public final class MinkJ implements Serializable
 			map.put(locale, new HashMap<String, String>());
 
 		loadTranslationFromBufferedReader(new BufferedReader(new FileReader(file)), locale, file.getName());
-		
+
 		return this;
 	}
 
@@ -243,7 +251,9 @@ public final class MinkJ implements Serializable
 	}
 
 	/**
-	 * This is used by the readers to provide a common method, making code modification easier
+	 * This is used by the readers to provide a common method, making code
+	 * modification easier
+	 * 
 	 * @param br
 	 * @param locale
 	 * @param fileName
@@ -267,13 +277,13 @@ public final class MinkJ implements Serializable
 					String[] translation = line.split("=");
 					if(!(translation.length == 2))
 					{
-						System.err.println("Errrored String : " + line + ". Here is the index :");
+						log("Errrored String : " + line + ". Here is the index :", true);
 						for(int i = 0; i < translation.length; i++)
-							System.err.println(translation[i] + "          @ index " + i);
+							log(translation[i] + "          @ index " + i, true);
 						throw new UnrespectedModelException(line);
 					}
 					if(map.get(locale).containsKey(translation[0]))
-						System.err.println("WARNING : File " + fileName + " overwrites a translation @ " + translation[0]);
+						log("WARNING : File " + fileName + " overwrites a translation @ " + translation[0], true);
 					this.addTranslation(locale, translation[0], translation[1]);
 				}
 			}
@@ -282,7 +292,7 @@ public final class MinkJ implements Serializable
 		{
 			br.close();
 		}
-		System.out.println("Successfully read file : " + fileName);
+		log("Successfully read file : " + fileName, false);
 		return this;
 	}
 
@@ -340,13 +350,47 @@ public final class MinkJ implements Serializable
 	}
 
 	/**
+	 * Mutes MinkJ. It won't output anything.
+	 * @return
+	 */
+	public MinkJ mute()
+	{
+		muted = true;
+		return this;
+	}
+
+	/**
+	 * Unmutes MinkJ. It will output stuff again.
+	 * @return
+	 */
+	public MinkJ unmute()
+	{
+		muted = false;
+		return this;
+	}
+	
+	/**
+	 * Logs something, checking if MinkJ can output stuff.
+	 */
+	private void log(String str, boolean error)
+	{
+		if(!muted)
+		{
+			if(error)
+				System.err.println(str);
+			if(!error)
+				System.out.println(str);
+		}
+	}
+
+	/**
 	 * Thrown by {@link MinkJ#loadTranslationsFromFile(Locale, File)} when a
 	 * file does not respect the translation model
 	 * 
 	 * @author utybo
 	 * 
 	 */
-	public class UnrespectedModelException extends Exception implements Serializable
+	public class UnrespectedModelException extends Exception
 	{
 		private static final long serialVersionUID = -1539821762590369248L;
 		private File file;
